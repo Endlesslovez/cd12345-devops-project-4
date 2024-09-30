@@ -60,7 +60,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
-      - name: Configure AWS Cre
+      - name: Configure AWS
         uses: minhnx8-fpt
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
