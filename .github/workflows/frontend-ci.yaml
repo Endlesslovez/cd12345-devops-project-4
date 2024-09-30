@@ -1,9 +1,9 @@
 name: Minhnx-FPT Frontend Continuous Integration
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     branches:
-      - main
+      - master
     paths:
       - "starter/frontend/**"
 env:
