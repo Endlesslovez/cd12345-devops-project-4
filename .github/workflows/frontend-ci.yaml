@@ -18,9 +18,9 @@ jobs:
         working-directory: ./frontend-ci
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/setup-node@v4.0.4
       - name: Cache Node.js dependencies
-        uses: actions/checkout@v4
+        uses: actions/cache@v3
         with:
           path: ~/.npm
           key: npm-${{ hashFiles('starter/frontend/package-lock.json') }}
@@ -61,14 +61,14 @@ jobs:
         run: |
           npm install
       - name: Configure AWS
-        uses: actions/checkout@v4
+        uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
       - name: Login to Amazon
         id: login-ecr
-        uses: actions/checkout@v4
+        uses: aws-actions/amazon-ecr-login@v1
         with:
           mask-password: "true"
       - name: Build -> Tag -> Push docker image
@@ -83,7 +83,7 @@ jobs:
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG --build-arg=REACT_APP_MOVIE_API_URL=http://$EXTERNALIP .
           docker images
       - name: Cache Docker
-        uses: minhnx8-fpt
+        uses: actions/cache@v3
         with:
           path: ~/docker-cache
           key: docker-${{ github.sha }}-frontend
