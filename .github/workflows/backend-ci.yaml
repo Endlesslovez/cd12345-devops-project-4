@@ -7,8 +7,10 @@ on:
       - main
     paths:
       - "start/backend/**"
+
 env:
   PYTHON_VERSION: 3.11
+
 jobs:
   lint:
     name: LINT JOB
@@ -18,7 +20,7 @@ jobs:
         working-directory: ./starter/backend
     steps:
       - name: Checkout
-        uses: actions/checkout@4
+        uses: actions/checkout@v4
       - name: Cache
         uses: actions/cache@v3
         with:
@@ -26,23 +28,20 @@ jobs:
           key: pipenv-${{ runner.os }}-${{ hashFiles('**/starter/Pipfile.lock') }}
           restore-keys: |
             pipenv-${{ runner.os }}-
-
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{env.PYTHON_VERSION}}
 
-      - name: Install
+      - name: Install dependencies
         run: |
           pip install pipenv
-
-      - name: Install
-        run: |
-          pipenv install && pip install flake8
+          pipenv install
+          pip install flake8
 
       - name: Run lint
         run: |
-          pipenv run lint
+          pipenv run flake8 . --exclude .venv
 
   test:
     name: Run test
@@ -52,22 +51,21 @@ jobs:
         working-directory: ./starter/backend
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup
+        uses: actions/checkout@v4
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{env.PYTHON_VERSION}}
-      - name: Install pipenv
+
+      - name: Install dependencies
         run: |
           pip install pipenv
-      - name: Install
-        run: |
           pipenv install
-      - name: Run
+
+      - name: Run tests
         run: |
-          pipenv run test
-          
+          pipenv run pytest
+
   build:
     name: Build and push
     runs-on: ubuntu-latest
@@ -77,18 +75,15 @@ jobs:
         working-directory: ./starter/backend
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{env.PYTHON_VERSION}}
 
-      - name: Install pipenv
-        run: |
-          pip install pipenv && pip install flake8
-
       - name: Install dependencies
         run: |
+          pip install pipenv
           pipenv install
 
       - name: Configure AWS
