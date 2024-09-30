@@ -14,8 +14,8 @@ jobs:
     name: LINT JOB
     runs-on: ubuntu-latest
     defaults:
-      run:
-        working-directory: ./frontend
+      run: 
+        working-directory: ./starter/frontend
     steps:
       - name: Checkout
         uses: actions/setup-node@v4.0.4
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./frontend
+        working-directory: ./starter/frontend
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -53,7 +53,7 @@ jobs:
     needs: [lint, test]
     defaults:
       run:
-        working-directory: ./frontend
+        working-directory: ./starter/frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
