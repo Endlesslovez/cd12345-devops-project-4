@@ -18,7 +18,11 @@ jobs:
         working-directory: ./starter/frontend
     steps:
       - name: Checkout
-        uses: actions/setup-node@v4.0.4
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
       - name: Cache Node.js dependencies
         uses: actions/cache@v3
         with:
@@ -32,6 +36,7 @@ jobs:
       - name: ESLint
         run: |
           npm run lint -- --fix
+
   test:
     name: TEST JOB
     runs-on: ubuntu-latest
@@ -41,12 +46,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
       - name: Install dependencies
         run: |
           npm install -f
       - name: Run tests
         run: |
           npm run test
+
   build:
     name: Build & Push Docker image
     runs-on: ubuntu-latest
@@ -66,11 +76,9 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-      - name: Login to Amazon
+      - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-        with:
-          mask-password: "true"
       - name: Build -> Tag -> Push docker image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
