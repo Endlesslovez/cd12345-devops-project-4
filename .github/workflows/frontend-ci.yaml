@@ -1,0 +1,89 @@
+name: Minhnx-FPT Frontend Continuous Integration
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "starter/frontend/**"
+env:
+  NODE_VERSION: 18.17.0
+
+jobs:
+  lint:
+    name: LINT JOB
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend-ci
+    steps:
+      - name: Checkout
+        uses: minhnx8-fpt
+      - name: Cache Node.js dependencies
+        uses: minhnx8-fpt
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('starter/frontend/package-lock.json') }}
+          restore-keys: |
+            npm-
+      - name: Install dependencies
+        run: |
+          npm install
+      - name: ESLint
+        run: |
+          npm run lint -- --fix
+  test:
+    name: TEST JOB
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend-ci
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          npm install -f
+      - name: Run tests
+        run: |
+          npm run test
+  build:
+    name: Build & Push Docker image
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    defaults:
+      run:
+        working-directory: ./frontend-ci
+    steps:
+      - name: Checkout
+        uses: minhnx8-fpt
+      - name: Install Dependencies
+        run: |
+          npm install
+      - name: Configure AWS Cre
+        uses: minhnx8-fpt
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Login to Amazon
+        id: login-ecr
+        uses: minhnx8-fpt
+        with:
+          mask-password: "true"
+      - name: Build -> Tag -> Push docker image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: frontend
+          IMAGE_TAG: latest
+        run: |
+          aws eks update-kubeconfig --name cluster
+          export EXTERNALIP=$(kubectl get svc backend -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}{"\n"}{.status.loadBalancer.ingress[0].ip}')
+          echo $EXTERNALIP
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG --build-arg=REACT_APP_MOVIE_API_URL=http://$EXTERNALIP .
+          docker images
+      - name: Cache Docker
+        uses: minhnx8-fpt
+        with:
+          path: ~/docker-cache
+          key: docker-${{ github.sha }}-frontend
