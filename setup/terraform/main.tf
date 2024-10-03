@@ -240,32 +240,7 @@ resource "aws_iam_role_policy_attachment" "ecr_policy" {
   role       = aws_iam_role.node_group.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
-# Create a new policy to allow PutUserPolicy for the GitHub action user
-resource "aws_iam_policy" "github_action_user_policy" {
-  name        = "github-action-user-policy"
-  description = "Allow GitHub action user to attach policies to itself"
-  
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Action = [
-          "iam:PutUserPolicy",
-          "iam:AttachUserPolicy",
-          "iam:DetachUserPolicy",
-        ],
-        Resource = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/${aws_iam_user.github_action_user.name}"
-      }
-    ]
-  })
-}
 
-# Attach the custom policy to the GitHub action user
-resource "aws_iam_user_policy_attachment" "github_action_user_custom_policy_attachment" {
-  user       = aws_iam_user.github_action_user.name
-  policy_arn = aws_iam_policy.github_action_user_policy.arn
-}
 data "aws_iam_policy_document" "assume_role_policy" {
   statement {
     effect  = "Allow"
@@ -300,7 +275,7 @@ resource "aws_codebuild_project" "codebuild" {
 
   source {
     type            = "GITHUB"
-    location        = "https://github.com/your-org/your-repo"
+    location        = "https://github.com/Endlesslovez/cd12345-devops-project-4"
     git_clone_depth = 1
     buildspec       = "buildspec.yml"
   }
